@@ -1,0 +1,35 @@
+
+name: Build NoLiveArea
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build NoLiveArea
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            vitasdk/vitasdk:2026.08 \
+            sh -lc '
+              cmake -S plugin/nolivearea \
+                -B plugin/nolivearea/build-ci
+              cmake --build plugin/nolivearea/build-ci --parallel 2
+            '
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoLiveArea-test
+          path: plugin/nolivearea/build-ci/NoLiveArea.suprx
+          if-no-files-found: error
